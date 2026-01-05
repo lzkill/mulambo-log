@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado Mulambo</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; background: #222; color: white; }
+        .container { max-width: 600px; margin: auto; }
+        img { max-width: 100%; border-radius: 8px; border: 2px solid #555; }
+        .btn-group { margin-top: 20px; }
+        button { background-color: #007bff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button.home { background-color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Seu Status Atual</h1>
+        <img id="result-image" src="" alt="Resultado">
+        
+        <div class="btn-group">
+            <button id="share-btn">COMPARTILHAR</button>
+            <button class="home" onclick="window.location.href='/'">VOLTAR</button>
+        </div>
+    </div>
+
+    <script>
+        // Load image from session storage or URL param? 
+        // For simplicity, we can just expect the previous page to replace the html or redirect here.
+        // But to make it cleaner, let's assume the previous page passes the data via URL or Storage.
+        // Let's use localStorage to pass the base64 string because it might be large for URL.
+        
+        const imgData = localStorage.getItem('mulambo_result');
+        if (imgData) {
+            document.getElementById('result-image').src = imgData;
+        } else {
+            alert('Nenhuma imagem encontrada.');
+            window.location.href = '/';
+        }
+
+        const shareBtn = document.getElementById('share-btn');
+        shareBtn.addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    // Convert base64 to blob file for sharing
+                    const res = await fetch(imgData);
+                    const blob = await res.blob();
+                    const file = new File([blob], 'mulambo_status.png', { type: 'image/png' });
+
+                    await navigator.share({
+                        title: 'Meu Índice de Mulambo',
+                        text: 'Confira meu progresso!',
+                        files: [file]
+                    });
+                } catch (err) {
+                    console.error('Error sharing:', err);
+                    alert('Erro ao compartilhar: ' + err.message);
+                }
+            } else {
+                alert('Compartilhamento nativo não suportado neste navegador.');
+            }
+        });
+    </script>
+</body>
+</html>
