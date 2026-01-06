@@ -16,10 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const startCameraBtn = document.getElementById('start-camera-btn');
     const fileInput = document.getElementById('file-input');
 
-    // Set default dates
     const now = new Date();
     
-    // Helper to format local date as YYYY-MM-DD
     const formatDate = (date) => {
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -34,18 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('end_date').value = formatDate(lastDay);
 
     let stream = null;
-    let currentFacingMode = 'user'; // 'user' = frontal, 'environment' = traseira
+    let currentFacingMode = 'user';
     let selectedSize = 'small';
     let selectedPosition = 'top-left';
     
-    // Graph size presets (width, height, dpi multiplier)
     const sizePresets = {
         'small': { width: 250, height: 166, dpi: 80 },
         'medium': { width: 400, height: 266, dpi: 100 },
         'large': { width: 550, height: 366, dpi: 120 }
     };
     
-    // Handle size selection
     document.querySelectorAll('.option-card[data-size]').forEach(card => {
         card.addEventListener('click', () => {
             document.querySelectorAll('.option-card[data-size]').forEach(c => c.classList.remove('active'));
@@ -54,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Handle position selection
     document.querySelectorAll('.pos-btn[data-position]').forEach(btn => {
         addClickEvent(btn, () => {
             document.querySelectorAll('.pos-btn[data-position]').forEach(b => b.classList.remove('active'));
@@ -63,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // Calculate position based on preset and image dimensions
     function calculatePosition(position, imageWidth, imageHeight, graphWidth, graphHeight) {
         const margin = 20;
         let x, y;
@@ -98,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     startBtn.addEventListener('click', async () => {
-        // 1. Persist Workout
         startBtn.disabled = true;
         startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
         
@@ -107,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.status === 'success') {
-                // 2. Show image source selection
                 settingsForm.style.display = 'none';
                 imageSourceSelection.style.display = 'block';
             } else {
@@ -121,12 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Helper function to add both click and touch events
     function addClickEvent(element, handler) {
-        if (!element) {
-            console.error('Element not found for click event');
-            return;
-        }
+        if (!element) return;
         element.addEventListener('click', handler);
         element.addEventListener('touchend', (e) => {
             e.preventDefault();
@@ -135,35 +123,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     addClickEvent(btnCamera, () => {
-        console.log('Camera button clicked');
         imageSourceSelection.style.display = 'none';
         cameraOptions.style.display = 'block';
-        // Set frontal as default
         currentFacingMode = 'user';
         btnFrontCam.classList.add('active');
     });
 
     addClickEvent(btnFrontCam, () => {
-        console.log('Front cam selected');
         currentFacingMode = 'user';
         btnFrontCam.classList.add('active');
         btnBackCam.classList.remove('active');
     });
 
     addClickEvent(btnBackCam, () => {
-        console.log('Back cam selected');
         currentFacingMode = 'environment';
         btnBackCam.classList.add('active');
         btnFrontCam.classList.remove('active');
     });
 
     addClickEvent(startCameraBtn, () => {
-        console.log('Start camera clicked');
         accessCamera();
     });
 
     addClickEvent(btnUpload, () => {
-        console.log('Upload button clicked');
         fileInput.click();
     });
 
@@ -183,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cameraContainer.style.display = 'block';
         
         try {
-            // Stop any existing stream
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
@@ -194,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             video.srcObject = stream;
         } catch (err) {
-            console.error(err);
             alert('Não foi possível acessar a câmera. Verifique as permissões.');
         }
     }
@@ -228,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 snapBtn.innerHTML = '<i class="fas fa-smile"></i> SORRIA!';
                 setTimeout(() => {
                    captureAndProcess(); 
-                }, 200); // Small delay for "SORRIA"
+                }, 200);
             }
         }, 1000);
     }
@@ -237,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
         imageSourceSelection.style.display = 'none';
         loading.style.display = 'block';
         
-        // Load image to get dimensions
         const img = new Image();
         img.onload = () => {
             const context = canvas.getContext('2d');
@@ -251,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function captureAndProcess() {
-        // Capture Photo
         const context = canvas.getContext('2d');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -259,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const imageData = canvas.toDataURL('image/png');
         
-        // Stop Camera
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
@@ -271,10 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function sendToServer(imageData) {
-        // Get selected presets
         const sizePreset = sizePresets[selectedSize];
         
-        // Load image to calculate position
         const img = new Image();
         img.onload = async () => {
             const position = calculatePosition(
@@ -285,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 sizePreset.height
             );
             
-            // Collect Params
             const params = {
                 width: sizePreset.width,
                 height: sizePreset.height,
@@ -295,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 end_date: document.getElementById('end_date').value
             };
 
-            // Send to Server
             try {
                 const response = await fetch('/process_image', {
                     method: 'POST',

@@ -11,8 +11,8 @@
 <body>
     <div class="container fade-in">
         <div class="card">
-            <h1><i class="fas fa-check-circle"></i> STATUS ATUAL</h1>
-            <p class="subtitle">Aqui está o registro da sua mulambice.</p>
+            <h1><i class="fas fa-check-circle"></i> ÍNDICE ATUAL</h1>
+            <p class="subtitle">Parabéns. Não falte amanhã!</p>
             
             <img id="result-image" src="" alt="Resultado indisponível">
             
@@ -42,7 +42,7 @@
                     const file = new File([blob], 'mulambo_status.png', { type: 'image/png' });
 
                     await navigator.share({
-                        title: 'Meu Índice de Mulambo',
+                        title: 'Meu Índice Mulambo',
                         text: 'Confira meu progresso no Mulambo Log!',
                         files: [file]
                     });
