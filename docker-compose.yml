@@ -9,3 +9,4 @@ services:
       - ./instance:/app/instance
     environment:
       - FLASK_ENV=development
+      - APP_TIMEZONE=America/Sao_Paulo

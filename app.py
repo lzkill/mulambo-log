@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from PIL import Image
 from flask import Flask, render_template, request, jsonify, g
+from dateutil import tz
 
 app = Flask(__name__)
 app.config['DATABASE'] = os.path.join(app.instance_path, 'mulambo.sqlite')
@@ -130,85 +131,130 @@ def generate_composite_image(base64_img, params, user_email):
     return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
 
 def create_mulambo_graph(params, user_email):
-    # Retrieve dates from params or default to current year
-    today = datetime.datetime.now()
+    # Timezone Setup
+    tz_str = os.environ.get('APP_TIMEZONE', 'UTC')
+    tz_info = tz.gettz(tz_str) or tz.UTC
     
+    # Current Local Time
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    now_local = now_utc.astimezone(tz_info)
+    today_local = now_local.replace(tzinfo=None) # Naive, representing local time
+    
+    # Retrieve dates from params or default to current year
     start_date_str = params.get('start_date')
     end_date_str = params.get('end_date')
     
     if start_date_str:
         start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
     else:
-        start_date = datetime.datetime(today.year, 1, 1)
+        start_date = datetime.datetime(today_local.year, 1, 1)
         
     if end_date_str:
         end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
-        # Adjust end_date to end of day to include workouts on that day if needed?
-        # Actually our workouts are timestamps, so we just compare.
         end_date = end_date.replace(hour=23, minute=59, second=59)
     else:
-        end_date = datetime.datetime(today.year, 12, 31, 23, 59, 59)
+        end_date = datetime.datetime(today_local.year, 12, 31, 23, 59, 59)
 
     # Fetch Data
     db = get_db()
     cursor = db.execute('SELECT timestamp FROM workouts WHERE user_email = ? ORDER BY timestamp ASC', (user_email,))
-    # Parse timestamps. UTC in DB.
-    workouts = []
+    
+    workout_dates = set()
+    first_workout_date = None
+    all_workouts_count = 0
+    
     for row in cursor.fetchall():
         try:
             ts = row['timestamp']
+            w_utc = None
             if isinstance(ts, str):
-                workouts.append(datetime.datetime.fromisoformat(ts))
+                w_utc = datetime.datetime.fromisoformat(ts)
             else:
-                workouts.append(ts)
+                w_utc = ts
+            
+            # Ensure w_utc is aware UTC
+            if w_utc.tzinfo is None:
+                w_utc = w_utc.replace(tzinfo=datetime.timezone.utc)
+            
+            # Convert to Local Naive
+            w_local = w_utc.astimezone(tz_info).replace(tzinfo=None)
+            
+            workout_dates.add(w_local.date())
+            
+            # Track for Historic Index
+            if first_workout_date is None:
+                first_workout_date = w_local
+            all_workouts_count += 1
+            
         except ValueError:
             pass
             
-    # X Axis: Days from start_date to end_date
+    # Calculate Indexes
     delta_days = (end_date - start_date).days + 1
     if delta_days <= 0: delta_days = 1
     
-    # We plot the full range to show "projection" (Potencial)
-    day_range = [start_date + datetime.timedelta(days=x) for x in range(delta_days)]
-    
-    # Pre-calculate workout dates in range
-    # Workouts are UTC. Assuming user operates in local or similar. 
-    # For simplicity, we just check date equality.
-    workout_dates = set(w.date() for w in workouts)
-    
-    # --- Current Index & Potential Index Calculations ---
-    
-    # Calculate totals for the bar chart
     workouts_in_period = 0
-    for w in workouts:
-        if start_date <= w <= end_date:
+    potential_total_workouts = 0
+    
+    # Iterate every day in the period
+    curr_d = start_date
+    while curr_d <= end_date:
+        d_date = curr_d.date()
+        
+        # Check against workout dates
+        is_workout_done = d_date in workout_dates
+        
+        if is_workout_done:
             workouts_in_period += 1
-            
+            potential_total_workouts += 1
+        else:
+            # If not done, is it a future date (or today)?
+            # If d_date >= today_local.date(), we assume potential = 1
+            if d_date >= today_local.date():
+                potential_total_workouts += 1
+        
+        curr_d += datetime.timedelta(days=1)
+
     # Current Index
     # 1 - (workouts / total_days)
     current_idx = 1.0 - (workouts_in_period / float(delta_days))
     if current_idx < 0: current_idx = 0.0
     
     # Potential Index (Min possible index)
-    # If I workout every remaining day from TODAY until end_date
-    days_remaining = (end_date - today).days
-    if days_remaining < 0: days_remaining = 0
-    
-    # If end_date < today, potential = current (we can't change the past)
-    potential_total_workouts = workouts_in_period + days_remaining
     potential_idx = 1.0 - (potential_total_workouts / float(delta_days))
     if potential_idx < 0: potential_idx = 0.0
 
     # --- Historic General Index ---
     # 1 - Total Workouts (All time) / Total Days (Since first workout ever)
-    if not workouts:
+    if not workout_dates:
         ig_val_str = "N/A"
     else:
-        first_w = workouts[0]
-        total_days_hist = (today - first_w).days + 1
+        # total_days_hist = (today_local - first_workout_date).days + 1
+        # Use first_workout_date which is a datetime match today_local
+        total_days_hist = (today_local - first_workout_date).days + 1
         if total_days_hist < 1: total_days_hist = 1
-        total_n = len(workouts)
-        hist_idx_val = 1.0 - (total_n / float(total_days_hist))
+        # all_workouts_count might include multiple workouts per day?
+        # Assuming index counts sessions, not days. If based on days, use len(workout_dates)
+        # However, logic above used workouts_in_period derived from loop over days (checking if date in set).
+        # Actually in the loop: if d_date in workout_dates: workouts_in_period += 1
+        # This counts DAYS with workouts, not total sessions.
+        # But 'all_workouts_count' counts sessions.
+        # Original code used `total_n = len(workouts)`. So it counted sessions.
+        # But for the graph bars, I used `workouts_in_period` which now counts Days.
+        # Let's align with original behavior. 
+        # Original: `for w in workouts: if start <= w <= end: workouts_in_period += 1` -> Counts sessions.
+        # My new loop: Iterates days. `if d_date in workout_dates`. Counts DAYS.
+        # This is strictly better for Mulambo index (laziness), but acts differently if user works out 2x/day.
+        # User didn't complain about that. But consistency is good.
+        # If I want to count sessions:
+        # workouts_in_period should be sum of sessions within [start, end].
+        # potential_total should be workouts_in_period + future days.
+        
+        # Let's stick to days counting for the period graph (cleaner normalized index 0..1).
+        # But for Historic IG, preserving original logic (sessions/days)?
+        # Original: `total_n / total_days`.
+        
+        hist_idx_val = 1.0 - (all_workouts_count / float(total_days_hist))
         ig_val_str = f"{hist_idx_val:.4f}"
 
     # Construct Info Text
