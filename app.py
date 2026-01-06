@@ -159,7 +159,7 @@ def create_mulambo_graph(params, user_email):
     db = get_db()
     cursor = db.execute('SELECT timestamp FROM workouts WHERE user_email = ? ORDER BY timestamp ASC', (user_email,))
     
-    workout_dates = set()
+    workouts_by_date = {}
     
     for row in cursor.fetchall():
         try:
@@ -177,7 +177,8 @@ def create_mulambo_graph(params, user_email):
             # Convert to Local Naive
             w_local = w_utc.astimezone(tz_info).replace(tzinfo=None)
             
-            workout_dates.add(w_local.date())
+            d = w_local.date()
+            workouts_by_date[d] = workouts_by_date.get(d, 0) + 1
             
         except ValueError:
             pass
@@ -194,12 +195,13 @@ def create_mulambo_graph(params, user_email):
     while curr_d <= end_date:
         d_date = curr_d.date()
         
-        # Check against workout dates
-        is_workout_done = d_date in workout_dates
+        # Count workouts on that day
+        daily_count = workouts_by_date.get(d_date, 0)
         
-        if is_workout_done:
-            workouts_in_period += 1
-            potential_total_workouts += 1
+        workouts_in_period += daily_count
+        
+        if daily_count > 0:
+            potential_total_workouts += daily_count
         else:
             # If not done, is it a future date (or today)?
             # If d_date >= today_local.date(), we assume potential = 1
