@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('canvas');
     const loading = document.getElementById('loading');
 
+    // Set default dates
+    const now = new Date();
+    const year = now.getFullYear();
+    const firstDay = new Date(year, 0, 1).toISOString().split('T')[0];
+    const lastDay = new Date(year, 11, 31).toISOString().split('T')[0];
+    
+    document.getElementById('start_date').value = firstDay;
+    document.getElementById('end_date').value = lastDay;
+
     let stream = null;
 
     startBtn.addEventListener('click', async () => {
@@ -99,7 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
             width: document.getElementById('g_width').value,
             height: document.getElementById('g_height').value,
             x: document.getElementById('g_x').value,
-            y: document.getElementById('g_y').value
+            y: document.getElementById('g_y').value,
+            start_date: document.getElementById('start_date').value,
+            end_date: document.getElementById('end_date').value
         };
 
         // Send to Server
