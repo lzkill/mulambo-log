@@ -160,8 +160,6 @@ def create_mulambo_graph(params, user_email):
     cursor = db.execute('SELECT timestamp FROM workouts WHERE user_email = ? ORDER BY timestamp ASC', (user_email,))
     
     workout_dates = set()
-    first_workout_date = None
-    all_workouts_count = 0
     
     for row in cursor.fetchall():
         try:
@@ -180,11 +178,6 @@ def create_mulambo_graph(params, user_email):
             w_local = w_utc.astimezone(tz_info).replace(tzinfo=None)
             
             workout_dates.add(w_local.date())
-            
-            # Track for Historic Index
-            if first_workout_date is None:
-                first_workout_date = w_local
-            all_workouts_count += 1
             
         except ValueError:
             pass
@@ -224,45 +217,11 @@ def create_mulambo_graph(params, user_email):
     potential_idx = 1.0 - (potential_total_workouts / float(delta_days))
     if potential_idx < 0: potential_idx = 0.0
 
-    # --- Historic General Index ---
-    # 1 - Total Workouts (All time) / Total Days (Since first workout ever)
-    if not workout_dates:
-        ig_val_str = "N/A"
-    else:
-        # total_days_hist = (today_local - first_workout_date).days + 1
-        # Use first_workout_date which is a datetime match today_local
-        total_days_hist = (today_local - first_workout_date).days + 1
-        if total_days_hist < 1: total_days_hist = 1
-        # all_workouts_count might include multiple workouts per day?
-        # Assuming index counts sessions, not days. If based on days, use len(workout_dates)
-        # However, logic above used workouts_in_period derived from loop over days (checking if date in set).
-        # Actually in the loop: if d_date in workout_dates: workouts_in_period += 1
-        # This counts DAYS with workouts, not total sessions.
-        # But 'all_workouts_count' counts sessions.
-        # Original code used `total_n = len(workouts)`. So it counted sessions.
-        # But for the graph bars, I used `workouts_in_period` which now counts Days.
-        # Let's align with original behavior. 
-        # Original: `for w in workouts: if start <= w <= end: workouts_in_period += 1` -> Counts sessions.
-        # My new loop: Iterates days. `if d_date in workout_dates`. Counts DAYS.
-        # This is strictly better for Mulambo index (laziness), but acts differently if user works out 2x/day.
-        # User didn't complain about that. But consistency is good.
-        # If I want to count sessions:
-        # workouts_in_period should be sum of sessions within [start, end].
-        # potential_total should be workouts_in_period + future days.
-        
-        # Let's stick to days counting for the period graph (cleaner normalized index 0..1).
-        # But for Historic IG, preserving original logic (sessions/days)?
-        # Original: `total_n / total_days`.
-        
-        hist_idx_val = 1.0 - (all_workouts_count / float(total_days_hist))
-        ig_val_str = f"{hist_idx_val:.4f}"
-
     # Construct Info Text
     s_date_str = start_date.strftime('%d/%m/%y')
     e_date_str = end_date.strftime('%d/%m/%y')
     
     info_text = (
-        f"IG: {ig_val_str}\n"
         f"Período: {s_date_str} - {e_date_str}\n"
         f"Treinos: {workouts_in_period} / Potencial: {potential_total_workouts}"
     )
