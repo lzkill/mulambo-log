@@ -43,10 +43,19 @@ body {
 
 h1 {
     margin-top: 0;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: var(--primary-color);
     text-transform: uppercase;
     letter-spacing: 1px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+h1 i {
+    font-size: 1.3rem;
 }
 
 p.subtitle {
@@ -68,7 +77,8 @@ label {
 
 input[type="text"],
 input[type="number"],
-input[type="date"] {
+input[type="date"],
+select {
     width: 100%;
     padding: 12px;
     background-color: var(--input-bg);
@@ -78,6 +88,10 @@ input[type="date"] {
     font-size: 1rem;
     box-sizing: border-box;
     transition: border-color 0.3s;
+}
+
+select {
+    cursor: pointer;
 }
 
 input:focus {
@@ -99,6 +113,8 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 10px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 button:hover {
@@ -117,6 +133,11 @@ button.secondary {
 
 button.secondary:hover {
     background-color: #444;
+}
+
+button.secondary.active {
+    background-color: var(--primary-color);
+    color: #000;
 }
 
 #camera-container {
@@ -162,4 +183,116 @@ video {
 
 .fade-in {
     animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Image Source Selection */
+.source-btn {
+    background-color: #333;
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.source-btn:hover {
+    background-color: #444;
+    transform: translateY(-2px);
+}
+
+.source-btn i {
+    margin-right: 8px;
+    pointer-events: none;
+}
+
+/* Option Cards */
+.option-group {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.option-card {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px;
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.option-card:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 163, 0.1);
+}
+
+.option-card.active {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 163, 0.15);
+}
+
+.option-card i {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.option-card span {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Position Inline */
+.position-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.pos-btn {
+    flex: 1;
+    min-width: 44px;
+    height: 40px;
+    padding: 0;
+    margin: 0;
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.pos-btn:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 255, 163, 0.1);
+    transform: none;
+}
+
+.pos-btn.active {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+}
+
+.pos-btn.active i {
+    color: #000;
+}
+
+.pos-btn i {
+    font-size: 0.7rem;
+    color: var(--primary-color);
+    pointer-events: none;
 }

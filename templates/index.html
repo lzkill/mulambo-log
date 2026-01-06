@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Índice de Mulambo</title>
+    <title>Mulambo Log</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 512%22><path fill=%22%2300ffa3%22 d=%22M104 96H56c-13.3 0-24 10.7-24 24v104H8c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h24v104c0 13.3 10.7 24 24 24h48c13.3 0 24-10.7 24-24V120c0-13.3-10.7-24-24-24zm528 128h-24V120c0-13.3-10.7-24-24-24h-48c-13.3 0-24 10.7-24 24v272c0 13.3 10.7 24 24 24h48c13.3 0 24-10.7 24-24V288h24c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zM456 32h-48c-13.3 0-24 10.7-24 24v168H256V56c0-13.3-10.7-24-24-24h-48c-13.3 0-24 10.7-24 24v400c0 13.3 10.7 24 24 24h48c13.3 0 24-10.7 24-24V288h128v168c0 13.3 10.7 24 24 24h48c13.3 0 24-10.7 24-24V56c0-13.3-10.7-24-24-24z%22/></svg>">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,50 +11,90 @@
 <body>
     <div class="container fade-in" id="main-view">
         <div class="card">
-            <h1><i class="fas fa-dumbbell"></i> Índice de Mulambo</h1>
-            <p class="subtitle">Registre seu treino, compartilhe seu progresso.</p>
+            <h1><i class="fas fa-dumbbell"></i> Mulambo Log</h1>
+            <p class="subtitle">Registre seu treino e analise sua mulambice.</p>
             
             <div id="settings-form">
                 <div class="form-group">
-                    <label for="start_date">Data Início</label>
+                    <label for="start_date">Data início</label>
                     <input type="date" id="start_date">
                 </div>
                 <div class="form-group">
-                    <label for="end_date">Data Fim</label>
+                    <label for="end_date">Data fim</label>
                     <input type="date" id="end_date">
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="form-group">
-                        <label for="g_width">Largura (px)</label>
-                        <input type="number" id="g_width" value="300">
-                    </div>
-                    <div class="form-group">
-                        <label for="g_height">Altura (px)</label>
-                        <input type="number" id="g_height" value="200">
-                    </div>
-                    <div class="form-group">
-                        <label for="g_x">Posição X</label>
-                        <input type="number" id="g_x" value="20">
-                    </div>
-                    <div class="form-group">
-                        <label for="g_y">Posição Y</label>
-                        <input type="number" id="g_y" value="20">
+                <div class="form-group">
+                    <label>Tamanho do gráfico</label>
+                    <div class="option-group">
+                        <div class="option-card active" data-size="small">
+                            <i class="fas fa-compress-alt"></i>
+                            <span>Pequeno</span>
+                        </div>
+                        <div class="option-card" data-size="medium">
+                            <i class="fas fa-expand-alt"></i>
+                            <span>Médio</span>
+                        </div>
+                        <div class="option-card" data-size="large">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                            <span>Grande</span>
+                        </div>
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label>Posição do gráfico</label>
+                    <div class="position-inline">
+                        <button type="button" class="pos-btn active" data-position="top-left" title="Superior Esquerdo">
+                            <i class="fas fa-arrow-up"></i><i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button type="button" class="pos-btn" data-position="top-right" title="Superior Direito">
+                            <i class="fas fa-arrow-up"></i><i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="button" class="pos-btn" data-position="center" title="Centro">
+                            <i class="fas fa-dot-circle"></i>
+                        </button>
+                        <button type="button" class="pos-btn" data-position="bottom-left" title="Inferior Esquerdo">
+                            <i class="fas fa-arrow-down"></i><i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button type="button" class="pos-btn" data-position="bottom-right" title="Inferior Direito">
+                            <i class="fas fa-arrow-down"></i><i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="start-btn"><i class="fas fa-camera"></i> Iniciar</button>
+            </div>
+
+            <div id="image-source-selection" style="display:none;">
+                <h3 style="margin-bottom: 15px;">Selecione a fonte da imagem:</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button id="btn-camera" class="source-btn"><i class="fas fa-camera"></i> Câmera</button>
+                    <button id="btn-upload" class="source-btn"><i class="fas fa-upload"></i> Upload</button>
+                </div>
+                <input type="file" id="file-input" accept="image/*" style="display:none;">
+            </div>
+
+            <div id="camera-options" style="display:none;">
+                <div class="form-group">
+                    <label for="camera_select">Selecionar câmera</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" id="btn-front-cam" class="secondary" style="flex: 1;"><i class="fas fa-user"></i> Frontal</button>
+                        <button type="button" id="btn-back-cam" class="secondary" style="flex: 1;"><i class="fas fa-camera"></i> Traseira</button>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="timer_val">Timer (segundos)</label>
                     <input type="number" id="timer_val" value="5" min="0">
                 </div>
-                
-                <button id="start-btn"><i class="fas fa-camera"></i> Iniciar Registro</button>
+                <button id="start-camera-btn"><i class="fas fa-video"></i> Abrir câmera</button>
             </div>
 
             <div id="camera-container">
                 <video id="video" autoplay playsinline></video>
-                <div style="padding: 10px;">
+                <div style="padding: 10px; display: flex; gap: 10px; flex-direction: column;">
                     <button id="snap"><i class="fas fa-camera"></i> CAPTURAR!</button>
+                    <button id="switch-camera"><i class="fas fa-sync-alt"></i> Alternar câmera</button>
                 </div>
             </div>
             
