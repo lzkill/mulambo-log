@@ -4,70 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Índice de Mulambo</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; background: #f0f0f0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; }
-        button:hover { background-color: #218838; }
-        #camera-container { display: none; margin-top: 20px; position: relative; }
-        video { width: 100%; border-radius: 8px; }
-        #snap { background-color: #007bff; margin-top: 10px; }
-        #loading { display: none; margin-top: 20px; color: #666; }
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container" id="main-view">
-        <h1>Índice de Mulambo</h1>
-        <p>Configure e registre seu treino.</p>
-        
-        <div id="settings-form">
-            <div class="form-group">
-                <label>Data Início</label>
-                <input type="date" id="start_date">
+    <div class="container fade-in" id="main-view">
+        <div class="card">
+            <h1><i class="fas fa-dumbbell"></i> Índice de Mulambo</h1>
+            <p class="subtitle">Configure e registre seu treino diário.</p>
+            
+            <div id="settings-form">
+                <div class="form-group">
+                    <label for="start_date">Data Início</label>
+                    <input type="date" id="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">Data Fim</label>
+                    <input type="date" id="end_date">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label for="g_width">Largura (px)</label>
+                        <input type="number" id="g_width" value="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="g_height">Altura (px)</label>
+                        <input type="number" id="g_height" value="200">
+                    </div>
+                    <div class="form-group">
+                        <label for="g_x">Posição X</label>
+                        <input type="number" id="g_x" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="g_y">Posição Y</label>
+                        <input type="number" id="g_y" value="20">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="timer_val">Timer (segundos)</label>
+                    <input type="number" id="timer_val" value="5" min="0">
+                </div>
+                
+                <button id="start-btn"><i class="fas fa-camera"></i> Iniciar Registro</button>
             </div>
-            <div class="form-group">
-                <label>Data Fim</label>
-                <input type="date" id="end_date">
-            </div>
-            <div class="form-group">
-                <label>Largura do Gráfico (px)</label>
-                <input type="number" id="g_width" value="300">
-            </div>
-            <div class="form-group">
-                <label>Altura do Gráfico (px)</label>
-                <input type="number" id="g_height" value="200">
-            </div>
-            <div class="form-group">
-                <label>Posição X (px)</label>
-                <input type="number" id="g_x" value="20">
-            </div>
-            <div class="form-group">
-                <label>Posição Y (px)</label>
-                <input type="number" id="g_y" value="20">
-            </div>
-            <div class="form-group">
-                <label>Timer (segundos)</label>
-                <input type="number" id="timer_val" value="5" min="0">
+
+            <div id="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <div style="padding: 10px;">
+                    <button id="snap"><i class="fas fa-camera"></i> CAPTURAR!</button>
+                </div>
             </div>
             
-            <button id="start-btn">REGISTRAR TREINO</button>
+            <div id="loading">
+                <i class="fas fa-spinner fa-spin"></i> Processando sua imagem...
+            </div>
+            <canvas id="canvas" style="display:none;"></canvas>
         </div>
-
-        <div id="camera-container">
-            <h3>Tire sua foto</h3>
-            <video id="video" autoplay playsinline></video>
-            <button id="snap">TIRAR FOTO</button>
-        </div>
-        
-        <div id="loading">Processando...</div>
-        <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
-    <!-- Hidden form to submit to result page if needed, or we just replace body -->
     <script src="/static/js/script.js"></script>
 </body>
 </html>

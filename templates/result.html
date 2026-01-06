@@ -4,52 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultado Mulambo</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; background: #222; color: white; }
-        .container { max-width: 600px; margin: auto; }
-        img { max-width: 100%; border-radius: 8px; border: 2px solid #555; }
-        .btn-group { margin-top: 20px; }
-        button { background-color: #007bff; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 5px; cursor: pointer; margin: 5px; }
-        button.home { background-color: #6c757d; }
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Seu Status Atual</h1>
-        <img id="result-image" src="" alt="Resultado">
-        
-        <div class="btn-group">
-            <button id="share-btn">COMPARTILHAR</button>
-            <button class="home" onclick="window.location.href='/'">VOLTAR</button>
+    <div class="container fade-in">
+        <div class="card">
+            <h1><i class="fas fa-check-circle"></i> STATUS ATUAL</h1>
+            <p class="subtitle">Aqui está o registro do seu progresso.</p>
+            
+            <img id="result-image" src="" alt="Resultado indisponível">
+            
+            <div class="btn-group">
+                <button id="share-btn"><i class="fas fa-share-alt"></i> COMPARTILHAR</button>
+                <button class="secondary" onclick="window.location.href='/'"><i class="fas fa-undo"></i> VOLTAR</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Load image from session storage or URL param? 
-        // For simplicity, we can just expect the previous page to replace the html or redirect here.
-        // But to make it cleaner, let's assume the previous page passes the data via URL or Storage.
-        // Let's use localStorage to pass the base64 string because it might be large for URL.
-        
         const imgData = localStorage.getItem('mulambo_result');
         if (imgData) {
             document.getElementById('result-image').src = imgData;
         } else {
-            alert('Nenhuma imagem encontrada.');
-            window.location.href = '/';
+            // Em vez de alertar e redirecionar imediatamente, mostramos uma imagem de erro ou mensagem
+            document.querySelector('.subtitle').innerText = 'Nenhuma imagem encontrada.';
+            document.getElementById('result-image').style.display = 'none';
         }
 
         const shareBtn = document.getElementById('share-btn');
         shareBtn.addEventListener('click', async () => {
-            if (navigator.share) {
+            if (navigator.share && imgData) {
                 try {
-                    // Convert base64 to blob file for sharing
                     const res = await fetch(imgData);
                     const blob = await res.blob();
                     const file = new File([blob], 'mulambo_status.png', { type: 'image/png' });
 
                     await navigator.share({
                         title: 'Meu Índice de Mulambo',
-                        text: 'Confira meu progresso!',
+                        text: 'Confira meu progresso no Mulambo Log!',
                         files: [file]
                     });
                 } catch (err) {
@@ -57,7 +50,7 @@
                     alert('Erro ao compartilhar: ' + err.message);
                 }
             } else {
-                alert('Compartilhamento nativo não suportado neste navegador.');
+                alert('Compartilhamento não suportado neste dispositivo ou imagem inválida.');
             }
         });
     </script>

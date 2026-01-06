@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startBtn.addEventListener('click', async () => {
         // 1. Persist Workout
         startBtn.disabled = true;
-        startBtn.innerText = "Registrando...";
+        startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
         
         try {
             const response = await fetch('/record_workout', { method: 'POST' });
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 alert('Erro ao registrar treino: ' + data.message);
                 startBtn.disabled = false;
-                startBtn.innerText = "REGISTRAR TREINO";
+                startBtn.innerHTML = '<i class="fas fa-camera"></i> Iniciar Registro';
             }
         } catch (e) {
             alert('Erro de conexão: ' + e);
@@ -78,15 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function startCountdown(seconds) {
         snapBtn.disabled = true;
         let count = seconds;
-        snapBtn.innerText = `FOTO EM ${count}...`;
+        snapBtn.innerHTML = `<i class="fas fa-clock"></i> FOTO EM ${count}...`;
         
         const interval = setInterval(() => {
             count--;
             if (count > 0) {
-                snapBtn.innerText = `FOTO EM ${count}...`;
+                snapBtn.innerHTML = `<i class="fas fa-clock"></i> FOTO EM ${count}...`;
             } else {
                 clearInterval(interval);
-                snapBtn.innerText = "SORRIA!";
+                snapBtn.innerHTML = '<i class="fas fa-smile"></i> SORRIA!';
                 setTimeout(() => {
                    captureAndProcess(); 
                 }, 200); // Small delay for "SORRIA"
