@@ -38,12 +38,24 @@ def init_db():
         db.execute('''
             CREATE TABLE IF NOT EXISTS workouts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL,
                 timestamp DATETIME NOT NULL
             )
         ''')
         db.commit()
 
 init_db()
+
+# Helper to get current user email from Cloudflare Access header
+def get_current_user_email():
+    # Header sent by Cloudflare Access
+    email = request.headers.get('Cf-Access-Authenticated-User-Email')
+    
+    # Fallback for local development (if not behind Cloudflare)
+    if not email:
+        email = 'dev@local.test'
+        
+    return email
 
 @app.route('/')
 def index():
@@ -57,8 +69,9 @@ def result():
 def record_workout():
     try:
         now = datetime.datetime.utcnow()
+        user_email = get_current_user_email()
         db = get_db()
-        db.execute('INSERT INTO workouts (timestamp) VALUES (?)', (now,))
+        db.execute('INSERT INTO workouts (timestamp, user_email) VALUES (?, ?)', (now, user_email))
         db.commit()
         return jsonify({'status': 'success'})
     except Exception as e:
@@ -69,19 +82,20 @@ def process_image():
     data = request.json
     image_data = data.get('image') # Base64 string
     graph_params = data.get('graph_params') # {x, y, w, h}
+    user_email = get_current_user_email()
     
     if not image_data:
         return jsonify({'status': 'error', 'message': 'No image data'}), 400
 
     try:
-        final_image_b64 = generate_composite_image(image_data, graph_params)
+        final_image_b64 = generate_composite_image(image_data, graph_params, user_email)
         return jsonify({'status': 'success', 'image': final_image_b64})
     except Exception as e:
         import traceback
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-def generate_composite_image(base64_img, params):
+def generate_composite_image(base64_img, params, user_email):
     # Decode image
     # Remove header if present (data:image/png;base64,...)
     if ',' in base64_img:
@@ -91,7 +105,7 @@ def generate_composite_image(base64_img, params):
     img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
     
     # Generate Graph
-    graph_img = create_mulambo_graph(params)
+    graph_img = create_mulambo_graph(params, user_email)
     
     # Resize Graph
     target_w = int(params.get('width', 300))
@@ -115,7 +129,7 @@ def generate_composite_image(base64_img, params):
     img.save(buffered, format="PNG")
     return "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
 
-def create_mulambo_graph(params):
+def create_mulambo_graph(params, user_email):
     # Retrieve dates from params or default to current year
     today = datetime.datetime.now()
     
@@ -137,7 +151,7 @@ def create_mulambo_graph(params):
 
     # Fetch Data
     db = get_db()
-    cursor = db.execute('SELECT timestamp FROM workouts ORDER BY timestamp ASC')
+    cursor = db.execute('SELECT timestamp FROM workouts WHERE user_email = ? ORDER BY timestamp ASC', (user_email,))
     # Parse timestamps. UTC in DB.
     workouts = []
     for row in cursor.fetchall():
