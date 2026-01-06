@@ -9,12 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set default dates
     const now = new Date();
-    const year = now.getFullYear();
-    const firstDay = new Date(year, 0, 1).toISOString().split('T')[0];
-    const lastDay = new Date(year, 11, 31).toISOString().split('T')[0];
     
-    document.getElementById('start_date').value = firstDay;
-    document.getElementById('end_date').value = lastDay;
+    // Helper to format local date as YYYY-MM-DD
+    const formatDate = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const firstDay = new Date(now.getFullYear(), 0, 1);
+    const lastDay = new Date(now.getFullYear(), 11, 31);
+    
+    document.getElementById('start_date').value = formatDate(firstDay);
+    document.getElementById('end_date').value = formatDate(lastDay);
 
     let stream = null;
 
