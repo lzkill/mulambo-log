@@ -187,21 +187,25 @@ def create_mulambo_graph(params):
 
     # --- Historic General Index ---
     # 1 - Total Workouts (All time) / Total Days (Since first workout ever)
-    # This is a single text value.
     if not workouts:
-        historic_text = "Histórico Geral: N/A"
+        ig_val_str = "N/A"
     else:
         first_w = workouts[0]
-        # total_m = days since first workout to NOW (or end of data?)
-        # Usually "History" implies up to now.
         total_days_hist = (today - first_w).days + 1
         if total_days_hist < 1: total_days_hist = 1
-        
-        # total_n = all workouts
         total_n = len(workouts)
-        
         hist_idx_val = 1.0 - (total_n / float(total_days_hist))
-        historic_text = f"IG: {hist_idx_val:.4f}"
+        ig_val_str = f"{hist_idx_val:.4f}"
+
+    # Construct Info Text
+    s_date_str = start_date.strftime('%d/%m/%y')
+    e_date_str = end_date.strftime('%d/%m/%y')
+    
+    info_text = (
+        f"IG: {ig_val_str}\n"
+        f"Período: {s_date_str} - {e_date_str}\n"
+        f"Treinos: {workouts_in_period} / Potencial: {potential_total_workouts}"
+    )
 
     # Plot Bar Chart
     fig, ax = plt.subplots(figsize=(5, 3), dpi=100)
@@ -222,10 +226,10 @@ def create_mulambo_graph(params):
                 f'{height:.4f}',
                 ha='center', va='bottom', fontsize=10, color='black')
     
-    # Add Historic Text
-    ax.text(0.95, 0.95, historic_text, transform=ax.transAxes, 
-            fontsize=10, verticalalignment='top', horizontalalignment='right',
-            bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.5))
+    # Add Info Text
+    ax.text(0.98, 0.98, info_text, transform=ax.transAxes, 
+            fontsize=7, verticalalignment='top', horizontalalignment='right',
+            bbox=dict(boxstyle='round', facecolor='#ffffcc', alpha=0.9))
     
     ax.set_ylim(0, 1.1) # little extra space for text
     ax.set_title("Índice de Mulambo", fontsize=12, fontweight='bold', color='black')
